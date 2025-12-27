@@ -14,7 +14,7 @@ find_package(GLEW REQUIRED)
 find_package(CURL REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(OpenAL REQUIRED)
-
+find_package(ImGui QUIET)
 if(WIN32)
     find_package(FFmpeg REQUIRED COMPONENTS avcodec avformat avutil swresample)
 else()
@@ -23,12 +23,15 @@ else()
 endif()
 
 include(FetchContent)
-FetchContent_Declare(
-    imgui
-    GIT_REPOSITORY https://github.com/ocornut/imgui.git
-    GIT_TAG master
-)
-FetchContent_MakeAvailable(imgui)
+
+if(NOT ImGui_FOUND)
+    FetchContent_Declare(
+        imgui
+        GIT_REPOSITORY https://github.com/ocornut/imgui.git
+        GIT_TAG master
+    )
+    FetchContent_MakeAvailable(imgui)
+endif()
 
 FetchContent_Declare(
     stb_image
@@ -38,7 +41,6 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(stb_image)
 add_library(stb_image INTERFACE)
 target_include_directories(stb_image INTERFACE ${stb_image_SOURCE_DIR})
-
 
 add_executable(${PROJECT_NAME}
     source/main.cpp
@@ -52,18 +54,18 @@ add_executable(${PROJECT_NAME}
     source/metadata/getlyrics.cpp
 )
 
-target_sources(${PROJECT_NAME} PRIVATE
-    ${imgui_SOURCE_DIR}/imgui.cpp
-    ${imgui_SOURCE_DIR}/imgui_draw.cpp
-    ${imgui_SOURCE_DIR}/imgui_tables.cpp
-    ${imgui_SOURCE_DIR}/imgui_widgets.cpp
-    ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
-    ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
-)
+if(NOT ImGui_FOUND)
+    target_sources(${PROJECT_NAME} PRIVATE
+        ${imgui_SOURCE_DIR}/imgui.cpp
+        ${imgui_SOURCE_DIR}/imgui_draw.cpp
+        ${imgui_SOURCE_DIR}/imgui_tables.cpp
+        ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+        ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
+        ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
+    )
+endif()
 
 target_include_directories(${PROJECT_NAME} PRIVATE
-    ${imgui_SOURCE_DIR}
-    ${imgui_SOURCE_DIR}/backends
     source/core
     source/files
     source/files/fonts
@@ -80,6 +82,15 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     nlohmann_json::nlohmann_json
     stb_image
 )
+
+if(ImGui_FOUND) 
+    target_link_libraries(${PROJECT_NAME} PRIVATE imgui::imgui)
+else()
+    target_include_directories(${PROJECT_NAME} PRIVATE
+        ${imgui_SOURCE_DIR}
+        ${imgui_SOURCE_DIR}/backends
+    )
+endif()
 
 if(WIN32)
     target_include_directories(${PROJECT_NAME} PRIVATE ${FFMPEG_INCLUDE_DIRS} ${OPENAL_INCLUDE_DIR})

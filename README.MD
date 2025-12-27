@@ -1,5 +1,5 @@
 # **Vesper**
-**Local music player with metadata, lyrics, and spectrum visualization**
+**Local music player with metadata, lyrics, and upcoming spectrum visualization**
 
 <p align="center">
   <img src="https://img.shields.io/badge/License-MIT-green" alt="License MIT" />
@@ -21,49 +21,103 @@
   <img src="https://img.shields.io/badge/CURL-required-orange" alt="libcurl" />
 </p>
 
-![Vesper screenshot](Vesper.png)
+<p align="center">
+  <img src="Vesper.png" alt="Vesper screenshot" width="800"/>
+</p>
 
-> ⚠️ Unstable version — may contain bugs or incomplete features.
+> ⚠️ **Work in progress** — the project is functional but unstable. Expect bugs and incomplete features.
 
 ---
 
 ## Features
 
 - Modern dark interface (ImGui + GLFW)
-- Tag and album art parsing
-- Automatic lyrics fetching via lrclib.net
+- Tag parsing and album art display
+- Automatic lyrics fetching from [lrclib.net](https://lrclib.net)
 - Streaming audio playback (OpenAL + FFmpeg)
 - Cross-platform: Windows ⋅ Linux ⋅ macOS
 
----
 
 ## Planned Features
 
-- **Next:** Real-time spectrum visualizer, drag & drop, playlists, search  
+- **Next:** Real-time spectrum visualizer, drag & drop support, playlists, search  
 - **Future:** Settings, EQ
 
 ---
 
-## Build 
+## Build Requirements & Setup
+
+Vesper uses CMake and depends on several libraries. Below are instructions for each platform.
+
+### Common
+- **CMake** 3.28 – 4.2 (latest recommended)
+
+### Windows (Recommended: MSVC + vcpkg)
+1. Install Visual Studio (for MSVC compiler) with "Desktop development with C++" workload.
+2. Install **vcpkg**:
+  ```bash
+  git clone https://github.com/microsoft/vcpkg.git
+  ./vcpkg/bootstrap-vcpkg.bat
+  ```
+3. Integrate vcpkg with VS/CMake
+  ```bash
+  ./vcpkg integrate install
+  ```
+4. Install dependencies via vcpkg:
+  ```bash
+  ./vcpkg install glfw3 glew curl nlohmann-json openal-soft  ffmpeg[avcodec,avformat,avutil,swresample] imgui[glfw-binding,opengl3-binding] --triplet x64-windows  # Note: imgui is optional — if not installed, it will be fetched automatically from GitHub.
+  ```
+  
+5. Build Vesper:
+  ```bash
+  git clone https://github.com/eteriaal/Vesper.git  
+  cd Vesper  
+  cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=[path_to_vcpkg]/scripts/buildsystems/vcpkg.cmake  
+  cmake --build build --config Release  
+  ```
+### Linux (Ubuntu/Debian example)
+```bash
+sudo apt update  
+sudo apt install build-essential cmake pkg-config \
+    libglfw3-dev libglew-dev libcurl4-openssl-dev nlohmann-json3-dev \
+    libopenal-dev libavformat-dev libavcodec-dev libavutil-dev libswresample-dev \
+    libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev
+```
+For other distros:
+- Arch: ``pacman -S base-devel glfw glew curl nlohmann-json openal ffmpeg``
+
+- Fedora: ``dnf install glfw-devel glew-devel curl-devel nlohmann-json-devel openal-soft-devel ffmpeg-devel``  
+
+#### Then build:
 ```bash
 git clone https://github.com/eteriaal/Vesper.git
 cd Vesper
-cmake -B build
+cmake -B build -S .
 cmake --build build
 ```
 
-## Third-Party libraries
-Dependencies are located via CMake find_package:
-```cmake
-find_package(OpenGL REQUIRED)
-find_package(glfw3 REQUIRED)
-find_package(GLEW REQUIRED)
-find_package(CURL REQUIRED)
-find_package(nlohmann_json REQUIRED)
-find_package(OpenAL REQUIRED)
-find_package(ImGui REQUIRED)
+### macOS
+```bash
+brew install cmake glfw glew curl nlohmann-json openal-soft ffmpeg
 ```
 
+Build the same way as on Linux.
+
+---
+
+### Runtime Dependencies (for file dialogs)
+- **Linux/MacOS**: `zenity`
+  ```bash
+  sudo apt install zenity    # Ubuntu/Debian
+  sudo dnf install zenity    # Fedora
+  sudo pacman -S zenity      # Arch
+  brew install zenity        # MacOS
+  ```
+- Windows: No external dependencies (uses native API for file dialogs).
+> Note: Planned replace zenity with native cross-platform dialogs (no external tools needed).
+
+
+---
 ## Third-Party Fonts
 Fonts included in the fonts/ folder:
 - **Font Awesome** — MIT License
@@ -77,8 +131,8 @@ Vesper is licensed under the MIT License
 
 ## Thanks
 
-- To the authors of all libraries and fonts used in the project
-- To lrclib.net for free lyrics database
+- To the authors of all used libraries and fonts
+- To [lrclib.net](https://lrclib.net) for free lyrics database
 - To you — for checking this out
 
-### ★ Found a bug or idea? Issues and pull requests welcome!
+### ★ Found a bug, have a feature idea, or want to contribute? Issues and pull requests welcome!
